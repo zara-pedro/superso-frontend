@@ -1,50 +1,66 @@
 (function () {
   "use strict";
 
-  function initLargeGalleryCarousel() {
-    const galleries = document.querySelectorAll('.notion-collection-gallery.large');
-    galleries.forEach(gallery => {
-      const cards = Array.from(gallery.querySelectorAll('.notion-collection-card'));
-      if (cards.length <= 1) {
-        return;
-      }
+  function initCarousel(gallery) {
+    if (gallery.classList.contains('carousel-initialized')) {
+      return;
+    }
 
-      const track = document.createElement('div');
-      track.className = 'carousel-track';
-      cards.forEach(card => track.appendChild(card));
-      gallery.innerHTML = '';
-      gallery.appendChild(track);
+    const cards = Array.from(gallery.querySelectorAll('.notion-collection-card'));
+    if (cards.length <= 1) {
+      return;
+    }
 
-      const prevButton = document.createElement('button');
-      prevButton.className = 'carousel-prev';
-      prevButton.innerHTML = '\u2039';
+    gallery.classList.add('carousel-initialized');
 
-      const nextButton = document.createElement('button');
-      nextButton.className = 'carousel-next';
-      nextButton.innerHTML = '\u203A';
+    const track = document.createElement('div');
+    track.className = 'carousel-track';
+    cards.forEach(card => track.appendChild(card));
+    gallery.innerHTML = '';
+    gallery.appendChild(track);
 
-      gallery.appendChild(prevButton);
-      gallery.appendChild(nextButton);
-      gallery.classList.add('carousel');
+    const prevButton = document.createElement('button');
+    prevButton.className = 'carousel-prev';
+    prevButton.innerHTML = '\u2039';
 
-      let currentIndex = 0;
-      const update = () => {
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-      };
+    const nextButton = document.createElement('button');
+    nextButton.className = 'carousel-next';
+    nextButton.innerHTML = '\u203A';
 
-      prevButton.addEventListener('click', () => {
-        currentIndex = (currentIndex - 1 + cards.length) % cards.length;
-        update();
-      });
+    gallery.appendChild(prevButton);
+    gallery.appendChild(nextButton);
+    gallery.classList.add('carousel');
 
-      nextButton.addEventListener('click', () => {
-        currentIndex = (currentIndex + 1) % cards.length;
-        update();
-      });
+    let currentIndex = 0;
+    const update = () => {
+      track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    };
 
+    prevButton.addEventListener('click', () => {
+      currentIndex = (currentIndex - 1 + cards.length) % cards.length;
       update();
     });
+
+    nextButton.addEventListener('click', () => {
+      currentIndex = (currentIndex + 1) % cards.length;
+      update();
+    });
+
+    update();
   }
 
-  document.addEventListener('DOMContentLoaded', initLargeGalleryCarousel);
+  function initLargeGalleryCarousels() {
+    const galleries = document.querySelectorAll('.notion-collection-gallery.large');
+    galleries.forEach(initCarousel);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initLargeGalleryCarousels();
+
+    const observer = new MutationObserver(() => {
+      initLargeGalleryCarousels();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  });
 })();
